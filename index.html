@@ -1,1 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ViA — Time Atlas</title>
+    <style>
+      :root {
+        --bg: #07131b;
+        --bg-2: #0c1b2d;
+        --panel: rgba(13, 26, 35, 0.82);
+        --panel-strong: rgba(17, 32, 42, 0.95);
+        --border: rgba(169, 205, 224, 0.18);
+        --text: #eaf8ff;
+        --muted: #9bb8c6;
+        --green: #47f0a4;
+        --green-soft: rgba(71, 240, 164, 0.22);
+        --red: #ff6d78;
+        --red-soft: rgba(255, 109, 120, 0.2);
+        --amber: #ffc857;
+        --blue: #6ec5ff;
+        --purple: #b98dff;
+        --shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+      }
 
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(39, 90, 117, 0.35), transparent 35%),
+          linear-gradient(160deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 28px;
+      }
+
+      .app {
+        width: min(1440px, 100%);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(71,240,164,0.35), rgba(110,197,255,0.35));
+        border: 1px solid rgba(255,255,255,0.08);
+        display: grid;
+        place-items: center;
+        box-shadow: var(--shadow);
+        font-weight: 800;
+        color: var(--green);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.2rem, 2vw, 2rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .searchbox {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .searchbox input {
+        width: min(420px, 100%);
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        height: 44px;
+        padding: 0 18px;
+        color: var(--text);
+        font-size: 0.95rem;
+        outline: none;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 22px;
+        margin-bottom: 26px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 26px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .hero-clock-panel {
+        padding: 26px;
+        min-height: 420px;
+        display: grid;
+        place-items: center;
+      }
+
+      .hero-clock {
+        position: relative;
+        width: min(360px, 72vw);
+        height: min(360px, 72vw);
+        border-radius: 50%;
+        background: radial-gradient(circle at center, rgba(16, 41, 56, 0.96), rgba(7, 19, 27, 1) 54%);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 60px rgba(110,197,255,0.12), 0 0 0 20px rgba(255,255,255,0.01);
+      }
+
+      .hero-clock .ring,
+      .clock-card .ring {
+        position: absolute;
+        inset: 12%;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.08);
+      }
+
+      .hero-clock .ring.minute,
+      .clock-card .ring.minute {
+        inset: 10%;
+        border-width: 6px;
+        border-color: rgba(71, 240, 164, 0.9);
+        box-shadow: 0 0 20px rgba(71,240,164,0.28);
+      }
+
+      .hero-clock .ring.second,
+      .clock-card .ring.second {
+        inset: 15%;
+        border-width: 3px;
+        border-color: rgba(255, 109, 120, 0.85);
+        box-shadow: 0 0 16px rgba(255,109,120,0.24);
+      }
+
+      .point,
+      .clock-card .point {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        left: 50%;
+        top: 50%;
+        margin-left: -5px;
+        margin-top: -5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.75);
+        box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      }
+
+      .point:nth-child(n) { transform: rotate(var(--angle)) translateY(calc(-50% - 120px)); }
+      .hero-clock .point:nth-child(1) { --angle: 0deg; }
+      .hero-clock .point:nth-child(2) { --angle: 30deg; }
+      .hero-clock .point:nth-child(3) { --angle: 60deg; }
+      .hero-clock .point:nth-child(4) { --angle: 90deg; }
+      .hero-clock .point:nth-child(5) { --angle: 120deg; }
+      .hero-clock .point:nth-child(6) { --angle: 150deg; }
+      .hero-clock .point:nth-child(7) { --angle: 180deg; }
+      .hero-clock .point:nth-child(8) { --angle: 210deg; }
+      .hero-clock .point:nth-child(9) { --angle: 240deg; }
+      .hero-clock .point:nth-child(10) { --angle: 270deg; }
+      .hero-clock .point:nth-child(11) { --angle: 300deg; }
+      .hero-clock .point:nth-child(12) { --angle: 330deg; }
+
+      .hand {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform-origin: 0% 50%;
+        border-radius: 999px;
+        opacity: 0.95;
+      }
+
+      .hand.second {
+        width: 40%;
+        height: 4px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--red) 30%, var(--red) 100%);
+        box-shadow: 0 0 18px rgba(255,109,120,0.5);
+      }
+
+      .hand.minute {
+        width: 34%;
+        height: 6px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--green) 25%, var(--green) 100%);
+        box-shadow: 0 0 20px rgba(71,240,164,0.55);
+      }
+
+      .hand.hour {
+        width: 24%;
+        height: 5px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--blue) 35%, var(--blue) 100%);
+      }
+
+      .center-dot {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, #fff 0%, var(--green) 32%, #0d1e1b 100%);
+        border: 3px solid rgba(255,255,255,0.2);
+        box-shadow: 0 0 22px rgba(71,240,164,0.5);
+      }
+
+      .hero-info {
+        padding: 28px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .hero-info .tag {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.72rem;
+      }
+
+      .hero-info h2 {
+        margin: 12px 0 8px;
+        font-size: clamp(1.8rem, 3vw, 3.2rem);
+      }
+
+      .hero-info .time-big {
+        font-size: clamp(2.2rem, 4vw, 4.2rem);
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin-bottom: 18px;
+      }
+
+      .unit-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .unit {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+
+      .unit .label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+      }
+
+      .meter {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        overflow: hidden;
+      }
+
+      .meter span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        width: 0;
+        transition: width 0.4s ease;
+      }
+
+      .meter .ms { background: linear-gradient(90deg, var(--amber), #ff8d5b); }
+      .meter .s { background: linear-gradient(90deg, var(--red), #ff7ba6); }
+      .meter .m { background: linear-gradient(90deg, var(--green), #8dffbf); }
+      .meter .h { background: linear-gradient(90deg, var(--blue), #84d5ff); }
+      .meter .d { background: linear-gradient(90deg, var(--purple), #d7b8ff); }
+      .meter .mo { background: linear-gradient(90deg, #4e9df7, #8bc4ff); }
+      .meter .y { background: linear-gradient(90deg, #27d4b7, #7bf2d0); }
+
+      .clock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 18px;
+      }
+
+      .clock-card {
+        background: var(--panel-strong);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 20px 18px 18px;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+
+      .clock-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(110,197,255,0.35);
+      }
+
+      .clock-card.active {
+        border-color: rgba(71, 240, 164, 0.6);
+        box-shadow: 0 0 0 1px rgba(71,240,164,0.15), var(--shadow);
+      }
+
+      .clock-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+
+      .clock-score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        height: 24px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+      }
+
+      .clock {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        margin: 0 auto 10px;
+        border-radius: 50%;
+        background: radial-gradient(circle at center, rgba(17, 44, 56, 0.85), rgba(9, 20, 28, 1) 70%);
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .clock .ring {
+        position: absolute;
+        inset: 12%;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.06);
+      }
+
+      .clock .ring.minute {
+        inset: 10%;
+        border-width: 4px;
+        border-color: rgba(71, 240, 164, 0.9);
+        box-shadow: 0 0 18px rgba(71,240,164,0.2);
+      }
+
+      .clock .ring.second {
+        inset: 16%;
+        border-width: 2px;
+        border-color: rgba(255, 109, 120, 0.85);
+      }
+
+      .clock .point {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        left: 50%;
+        top: 50%;
+        margin-left: -3.5px;
+        margin-top: -3.5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.6);
+      }
+
+      .clock .point:nth-child(1) { transform: rotate(0deg) translateY(-68px); }
+      .clock .point:nth-child(2) { transform: rotate(30deg) translateY(-68px); }
+      .clock .point:nth-child(3) { transform: rotate(60deg) translateY(-68px); }
+      .clock .point:nth-child(4) { transform: rotate(90deg) translateY(-68px); }
+      .clock .point:nth-child(5) { transform: rotate(120deg) translateY(-68px); }
+      .clock .point:nth-child(6) { transform: rotate(150deg) translateY(-68px); }
+      .clock .point:nth-child(7) { transform: rotate(180deg) translateY(-68px); }
+      .clock .point:nth-child(8) { transform: rotate(210deg) translateY(-68px); }
+      .clock .point:nth-child(9) { transform: rotate(240deg) translateY(-68px); }
+      .clock .point:nth-child(10) { transform: rotate(270deg) translateY(-68px); }
+      .clock .point:nth-child(11) { transform: rotate(300deg) translateY(-68px); }
+      .clock .point:nth-child(12) { transform: rotate(330deg) translateY(-68px); }
+
+      .hand.second {
+        width: 42%;
+        height: 3px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--red) 25%, var(--red) 100%);
+      }
+
+      .hand.minute {
+        width: 32%;
+        height: 5px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--green) 28%, var(--green) 100%);
+      }
+
+      .hand.hour {
+        width: 22%;
+        height: 4px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), var(--blue) 25%, var(--blue) 100%);
+      }
+
+      .clock .center-dot {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        margin-left: -6px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fff 0%, var(--green) 30%, rgba(16, 33, 39, 0.9) 100%);
+        box-shadow: 0 0 18px rgba(71,240,164,0.4);
+      }
+
+      .time-readout {
+        text-align: center;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+
+      @media (max-width: 980px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        body {
+          padding: 16px;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .searchbox {
+          justify-content: stretch;
+        }
+
+        .searchbox input {
+          width: 100%;
+        }
+
+        .unit-list {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">V</div>
+          <h1>ViA Time Atlas</h1>
+        </div>
+        <div class="searchbox">
+          <input id="regionSearch" type="text" placeholder="Rechercher une région / ville…" />
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="panel hero-clock-panel">
+            <div id="heroClock" class="hero-clock" aria-label="Horloge principale">
+              <div class="ring minute"></div>
+              <div class="ring second"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="point"></div>
+              <div class="hand hour"></div>
+              <div class="hand minute"></div>
+              <div class="hand second"></div>
+              <div class="center-dot"></div>
+            </div>
+          </div>
+
+          <div class="panel hero-info">
+            <div class="tag">Fusion locale</div>
+            <h2 id="selectedRegion">UTC</h2>
+            <div id="selectedTime" class="time-big">00:00:00</div>
+
+            <div class="unit-list">
+              <div class="unit">
+                <div class="label"><span>Millisecondes</span><strong id="msValue">000</strong></div>
+                <div class="meter"><span id="msBar" class="ms"></span></div>
+              </div>
+              <div class="unit">
+                <div class="label"><span>Secondes</span><strong id="sValue">00</strong></div>
+                <div class="meter"><span id="sBar" class="s"></span></div>
+              </div>
+              <div class="unit">
+                <div class="label"><span>Minutes</span><strong id="mValue">00</strong></div>
+                <div class="meter"><span id="mBar" class="m"></span></div>
+              </div>
+              <div class="unit">
+                <div class="label"><span>Heures</span><strong id="hValue">00</strong></div>
+                <div class="meter"><span id="hBar" class="h"></span></div>
+              </div>
+              <div class="unit">
+                <div class="label"><span>Jours</span><strong id="dValue">00</strong></div>
+                <div class="meter"><span id="dBar" class="d"></span></div>
+              </div>
+              <div class="unit">
+                <div class="label"><span>Mois</span><strong id="moValue">00</strong></div>
+                <div class="meter"><span id="moBar" class="mo"></span></div>
+              </div>
+              <div class="unit" style="grid-column: 1 / -1;">
+                <div class="label"><span>Année</span><strong id="yValue">2026</strong></div>
+                <div class="meter"><span id="yBar" class="y"></span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="clockGrid" class="clock-grid" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <script>
+      const regions = [
+        { label: 'UTC', tz: 'UTC', city: 'Greenwich' },
+        { label: 'Paris', tz: 'Europe/Paris', city: 'France' },
+        { label: 'New York', tz: 'America/New_York', city: 'États-Unis' },
+        { label: 'Los Angeles', tz: 'America/Los_Angeles', city: 'États-Unis' },
+        { label: 'Tokyo', tz: 'Asia/Tokyo', city: 'Japon' },
+        { label: 'Dubai', tz: 'Asia/Dubai', city: 'Émirats' },
+        { label: 'Mumbai', tz: 'Asia/Kolkata', city: 'Inde' },
+        { label: 'Singapore', tz: 'Asia/Singapore', city: 'Singapour' },
+        { label: 'Sydney', tz: 'Australia/Sydney', city: 'Australie' },
+        { label: 'Johannesburg', tz: 'Africa/Johannesburg', city: 'Afrique du Sud' },
+        { label: 'Rio', tz: 'America/Sao_Paulo', city: 'Brésil' },
+        { label: 'Londres', tz: 'Europe/London', city: 'Royaume-Uni' }
+      ];
+
+      const selectedRegion = { value: 'UTC' };
+      const grid = document.getElementById('clockGrid');
+      const heroClock = document.getElementById('heroClock');
+      const regionSearch = document.getElementById('regionSearch');
+
+      function getTimeParts(date, tz) {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          hour12: false,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          fractionalSecondDigits: 3
+        });
+
+        const parts = formatter.formatToParts(date);
+        const map = {};
+        parts.forEach((part) => {
+          if (part.type !== 'literal') map[part.type] = part.value;
+        });
+
+        const year = Number(map.year);
+        const month = Number(map.month);
+        const day = Number(map.day);
+        const hour = Number(map.hour);
+        const minute = Number(map.minute);
+        const second = Number(map.second);
+        const ms = Number((map.fractionalSecond || '0').slice(0, 3) || 0);
+
+        return { year, month, day, hour, minute, second, ms };
+      }
+
+      function updateHero(clock, tz, now) {
+        const p = getTimeParts(now, tz);
+        const hour = p.hour % 12;
+        const minute = p.minute;
+        const second = p.second + p.ms / 1000;
+
+        const hourAngle = ((hour + minute / 60 + second / 3600) * 30) - 90;
+        const minuteAngle = ((minute + second / 60) * 6) - 90;
+        const secondAngle = (second * 6) - 90;
+
+        const hourHand = clock.querySelector('.hand.hour');
+        const minuteHand = clock.querySelector('.hand.minute');
+        const secondHand = clock.querySelector('.hand.second');
+        hourHand.style.transform = `rotate(${hourAngle}deg)`;
+        minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        secondHand.style.transform = `rotate(${secondAngle}deg)`;
+
+        const minuteRing = clock.querySelector('.ring.minute');
+        const secondRing = clock.querySelector('.ring.second');
+        minuteRing.style.transform = `scale(${1 + (minute / 60) * 0.2})`;
+        minuteRing.style.borderWidth = `${4 + (minute / 60) * 10}px`;
+        secondRing.style.transform = `scale(${1 + (p.ms / 1000) * 0.25})`;
+      }
+
+      function updateUnits(tz, now) {
+        const p = getTimeParts(now, tz);
+        const daysInCurrentMonth = new Date(p.year, p.month, 0).getDate();
+        const daysInYear = (new Date(p.year, 11, 31).getTime() - new Date(p.year, 0, 0).getTime()) / 86400000;
+        const yearProgress = (new Date(p.year, p.month - 1, p.day).getTime() - new Date(p.year, 0, 0).getTime()) / (new Date(p.year + 1, 0, 0).getTime() - new Date(p.year, 0, 0).getTime());
+
+        document.getElementById('selectedRegion').textContent = selectedRegion.value;
+        document.getElementById('selectedTime').textContent = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: tz,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        }).format(now);
+
+        document.getElementById('msValue').textContent = String(p.ms).padStart(3, '0');
+        document.getElementById('sValue').textContent = String(p.second).padStart(2, '0');
+        document.getElementById('mValue').textContent = String(p.minute).padStart(2, '0');
+        document.getElementById('hValue').textContent = String(p.hour).padStart(2, '0');
+        document.getElementById('dValue').textContent = String(p.day).padStart(2, '0');
+        document.getElementById('moValue').textContent = String(p.month).padStart(2, '0');
+        document.getElementById('yValue').textContent = String(p.year);
+
+        setMeter('msBar', p.ms / 1000);
+        setMeter('sBar', p.second / 60);
+        setMeter('mBar', p.minute / 60);
+        setMeter('hBar', p.hour / 24);
+        setMeter('dBar', p.day / daysInCurrentMonth);
+        setMeter('moBar', p.month / 12);
+        setMeter('yBar', yearProgress);
+      }
+
+      function setMeter(id, value) {
+        const bar = document.getElementById(id);
+        bar.style.width = `${Math.min(100, Math.max(0, value * 100))}%`;
+      }
+
+      function createClockCard(config) {
+        const card = document.createElement('article');
+        card.className = 'clock-card';
+        card.dataset.region = config.tz;
+        card.innerHTML = `
+          <div class="clock-head">
+            <span>${config.label}</span>
+            <span class="clock-score">${config.city}</span>
+          </div>
+          <div class="clock" aria-label="${config.label}">
+            <div class="ring minute"></div>
+            <div class="ring second"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="point"></div>
+            <div class="hand hour"></div>
+            <div class="hand minute"></div>
+            <div class="hand second"></div>
+            <div class="center-dot"></div>
+          </div>
+          <div class="time-readout">00:00:00</div>
+        `;
+
+        card.addEventListener('click', () => {
+          selectedRegion.value = config.label;
+          document.querySelectorAll('.clock-card').forEach((el) => el.classList.toggle('active', el === card));
+          updateTime();
+        });
+
+        return card;
+      }
+
+      function populateClocks() {
+        const filtered = regions.filter((region) => {
+          const query = regionSearch.value.trim().toLowerCase();
+          if (!query) return true;
+          return `${region.label} ${region.city} ${region.tz}`.toLowerCase().includes(query);
+        });
+
+        grid.innerHTML = '';
+        filtered.forEach((region) => {
+          grid.appendChild(createClockCard(region));
+        });
+      }
+
+      function renderClockCard(card, tz, now) {
+        const p = getTimeParts(now, tz);
+        const hour = p.hour % 12;
+        const minute = p.minute;
+        const second = p.second + p.ms / 1000;
+
+        const hourAngle = ((hour + minute / 60 + second / 3600) * 30) - 90;
+        const minuteAngle = ((minute + second / 60) * 6) - 90;
+        const secondAngle = (second * 6) - 90;
+
+        const hourHand = card.querySelector('.hand.hour');
+        const minuteHand = card.querySelector('.hand.minute');
+        const secondHand = card.querySelector('.hand.second');
+        const minuteRing = card.querySelector('.ring.minute');
+        const secondRing = card.querySelector('.ring.second');
+        const readout = card.querySelector('.time-readout');
+
+        hourHand.style.transform = `rotate(${hourAngle}deg)`;
+        minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        secondHand.style.transform = `rotate(${secondAngle}deg)`;
+        minuteRing.style.transform = `scale(${1 + (minute / 60) * 0.18})`;
+        minuteRing.style.borderWidth = `${4 + (minute / 60) * 8}px`;
+        secondRing.style.transform = `scale(${1 + (p.ms / 1000) * 0.2})`;
+
+        readout.textContent = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: tz,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }).format(now);
+      }
+
+      function updateTime() {
+        const now = new Date();
+        const active = selectedRegion.value || 'UTC';
+        const tz = regions.find((r) => r.label === active)?.tz || 'UTC';
+
+        updateHero(heroClock, tz, now);
+        updateUnits(tz, now);
+
+        document.querySelectorAll('.clock-card').forEach((card) => {
+          const regionTz = card.dataset.region;
+          renderClockCard(card, regionTz, now);
+          card.classList.toggle('active', selectedRegion.value === card.querySelector('.clock-head span')?.textContent?.trim());
+        });
+      }
+
+      regionSearch.addEventListener('input', () => {
+        populateClocks();
+        const first = document.querySelector('.clock-card');
+        if (first) {
+          const label = first.querySelector('.clock-head span').textContent.trim();
+          selectedRegion.value = label;
+        }
+        updateTime();
+      });
+
+      populateClocks();
+      updateTime();
+      setInterval(updateTime, 50);
+    </script>
+  </body>
+</html>
